@@ -4,7 +4,7 @@
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
-#define MAX_LEN 5  // Max length of string to brute-force
+#define MAX_LEN 6  // Max length of string to brute-force
 
 void print_hash(unsigned char *hash, int length) {
     for (int i = 0; i < length; i++) {
@@ -31,14 +31,22 @@ int increment_string(char *str, int max_length) {
 int main(int argc, char *argv[]) {
 
     unsigned char hash_output[SHA512_DIGEST_LENGTH];  // Max size for SHA-512
-    char candidate[MAX_LEN + 1];  // Brute-force candidate string
-    memset(candidate, 32, MAX_LEN);  // Start with all spaces (' ')
-    candidate[MAX_LEN] = '\0';  // Null-terminate the string
-                                //
-    if (argc != 2){
-        puts("<usage> ./slasher (hashing algoirthm)");
+    char candidate[MAX_LEN + 1]; 
+    memset(candidate, 32, MAX_LEN);  
+    candidate[MAX_LEN] = '\0';  
+
+    
+
+    if (argc != 3){
+        puts("<usage> ./slasher (hashing algoirthm) (target hash)");
         exit(-1);
     }
+
+    unsigned char target_hash[SHA512_DIGEST_LENGTH];
+    strncpy(target_hash, argv[2], strlen(argv[2]));
+
+    printf("Brute forcing %s hash collision for %s\n", argv[1], target_hash);
+
 
     do {
         
@@ -59,11 +67,10 @@ int main(int argc, char *argv[]) {
             puts("Invalid hashing algorithm choose: md5, sha1, sha256");
         }
 
-
-        if (hash_output[0] == '\0') {
-            printf("String \"%s\" produces hash starting with null byte\n", candidate);
-            printf("Result: %s\n", candidate);
+        if (strcmp(hash_output, target_hash) == 0) {
+            printf("String \"%s\" produces hash collision\n", candidate);
             print_hash(hash_output, MD5_DIGEST_LENGTH);
+            print_hash(candidate, strlen(candidate));
             return 0;
         }
 
